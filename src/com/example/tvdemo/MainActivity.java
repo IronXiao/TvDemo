@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 import tvConfig.ConfigJson;
 import tvConfig.TvConfig;
@@ -14,6 +16,7 @@ import android.app.AlertDialog.Builder;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -32,9 +35,11 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		tvList = (ListView) findViewById(R.id.tv_list);
-		Gson gson = new Gson();
-		ConfigJson configJson = gson.fromJson(readJsonFromAssets(),
-				ConfigJson.class);
+		/*
+		 * Gson gson = new Gson(); ConfigJson configJson =
+		 * gson.fromJson(readJsonFromAssets(), ConfigJson.class);
+		 */
+		ConfigJson configJson = readTxtFromAssetAndFormatAsJson();
 		final TvAdapter adapter = new TvAdapter(configJson.getTvs(), this);
 		tvList.setAdapter(adapter);
 		tvList.setOnItemClickListener(new OnItemClickListener() {
@@ -44,6 +49,7 @@ public class MainActivity extends Activity {
 					int position, long id) {
 				String url = ((TvConfig) adapter.getItem(position)).getTvUrl();
 				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+				//intent.setPackage("com.mxtech.videoplayer.ad");
 				startActivity(intent);
 
 			}
@@ -85,4 +91,30 @@ public class MainActivity extends Activity {
 		return new String(stringBuilder);
 	}
 
+	private ConfigJson readTxtFromAssetAndFormatAsJson() {
+		List<TvConfig> tvConfigs = new ArrayList<TvConfig>();
+
+		try {
+			InputStream inputStream = getAssets().open("tv.txt");
+			BufferedReader reader = new BufferedReader(new InputStreamReader(
+					inputStream));
+			String temp = null;
+			temp = reader.readLine();
+			while (temp != null) {
+				// stringBuilder.append(temp).append("\n");
+				String tvName = temp.substring(0, temp.indexOf(","));
+				String tvUrl = temp.substring(temp.indexOf(",") + 1,
+						temp.length());
+				TvConfig tvConfig = new TvConfig(tvName, tvUrl);
+				tvConfigs.add(tvConfig);
+				temp = reader.readLine();
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		// return new String(stringBuilder);
+		return new ConfigJson(tvConfigs);
+
+	}
 }
