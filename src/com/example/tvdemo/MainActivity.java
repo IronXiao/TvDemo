@@ -58,6 +58,7 @@ public class MainActivity extends Activity {
 				String url = ((TvConfig) adapter.getItem(position)).getTvUrl();
 				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
 				// intent.setPackage("com.mxtech.videoplayer.ad");
+				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				startActivity(intent);
 
 			}
