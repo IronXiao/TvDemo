@@ -5,6 +5,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">About</string>
     <string name="alert">Alert</string>
-    <string name="message">This is for test,if you have any problem please contact me via email:xiaoleigs@gmail.com</string>
+    <string name="switch_config">Switch config file</string>
 
 </resources>

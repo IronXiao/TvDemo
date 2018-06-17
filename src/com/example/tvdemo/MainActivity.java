@@ -1,6 +1,7 @@
 package com.example.tvdemo;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -11,8 +12,6 @@ import tvConfig.ConfigJson;
 import tvConfig.TvConfig;
 import tvadapter.TvAdapter;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,31 +25,40 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
-	private ListView tvList;
-	private ConfigJson configJson;
+	private ListView mTvList;
+	private boolean mIsAssetType = true;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		/*
-		 * Gson gson = new Gson(); ConfigJson configJson =
-		 * gson.fromJson(readJsonFromAssets(), ConfigJson.class);
-		 */
+		mTvList = (ListView) findViewById(R.id.tv_list);
+		updateList();
+
+	}
+
+	private void updateList() {
+		ConfigJson configJson;
 		try {
-			configJson = readTxtFromAssetAndFormatAsJson();
+			configJson = readConfig();
 		} catch (IOException e) {
 			e.printStackTrace();
-			Toast.makeText(MainActivity.this,
-					"Please check your config file !", Toast.LENGTH_SHORT)
-					.show();
-			MainActivity.this.finish();
+			Toast.makeText(
+					MainActivity.this,
+					"Please check your config file in "
+							+ (mIsAssetType ? "Asset !" : "sdcard !"),
+					Toast.LENGTH_SHORT).show();
 			return;
 		}
-		tvList = (ListView) findViewById(R.id.tv_list);
+
 		final TvAdapter adapter = new TvAdapter(configJson.getTvs(), this);
-		tvList.setAdapter(adapter);
-		tvList.setOnItemClickListener(new OnItemClickListener() {
+		mTvList.setAdapter(adapter);
+		Toast.makeText(
+				MainActivity.this,
+				"Config file now is in "
+						+ (mIsAssetType ? "Asset !" : "sdcard !"),
+				Toast.LENGTH_SHORT).show();
+		mTvList.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
@@ -63,7 +71,6 @@ public class MainActivity extends Activity {
 
 			}
 		});
-
 	}
 
 	@Override
@@ -75,31 +82,17 @@ public class MainActivity extends Activity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		AlertDialog.Builder builder = new Builder(MainActivity.this);
-		builder.setTitle(R.string.alert).setMessage(R.string.message).create()
-				.show();
+		mIsAssetType = !mIsAssetType;
+		updateList();
 		return true;
 	}
 
-	/*
-	 * private String readJsonFromAssets() throws IOException { StringBuilder
-	 * stringBuilder = new StringBuilder(); BufferedReader reader = null;
-	 * InputStream inputStream = null;
-	 * 
-	 * try { inputStream = getAssets().open("tv.json"); reader = new
-	 * BufferedReader(new InputStreamReader(inputStream)); String temp = "";
-	 * temp = reader.readLine(); while (temp != null) {
-	 * stringBuilder.append(temp).append("\n"); temp = reader.readLine(); }
-	 * 
-	 * } catch (IOException e) { e.printStackTrace(); } finally {
-	 * reader.close(); inputStream.close(); } return new String(stringBuilder);
-	 * }
-	 */
-	private ConfigJson readTxtFromAssetAndFormatAsJson() throws IOException {
+	private ConfigJson readConfig() throws IOException {
 		List<TvConfig> tvConfigs = new ArrayList<TvConfig>();
 		BufferedReader reader = null;
-		InputStream inputStream = null;
-		inputStream = getAssets().open("tv.txt");
+		@SuppressWarnings("resource")
+		InputStream inputStream = mIsAssetType ? getAssets().open("tv.txt")
+				: new FileInputStream("/sdcard/tv.txt");
 		reader = new BufferedReader(new InputStreamReader(inputStream));
 		String temp = null;
 		temp = reader.readLine();
